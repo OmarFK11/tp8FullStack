@@ -9,16 +9,25 @@ function App() {
     axios.get('http://localhost:5000/tasks')
       .then((response) => {
         setTasks(response.data);
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la récupération des tâches:', error);
       });
   }, []);
   const handleAddTask = () => {
     if (newTask) {
-
       // Envoyer la nouvelle tâche au backend
       axios.post('http://localhost:5000/tasks', { title: newTask })
         .then((response) => {
-          setTasks([...tasks, { title: newTask, completed: false }]);
+          // Rafraîchir la liste des tâches depuis le serveur
+          return axios.get('http://localhost:5000/tasks');
+        })
+        .then((response) => {
+          setTasks(response.data);
           setNewTask('');
+        })
+        .catch((error) => {
+          console.error('Erreur lors de l\'ajout de la tâche:', error);
         });
     }
   };

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const Task = require('./models/Task');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,15 +19,28 @@ mongoose
 	.catch((err) => console.log('Erreur de connexion à MongoDB:', err));
 
 // Créer une route pour récupérer les tâches
-app.get('/tasks', (req, res) => {
-	// Retourner une liste de tâches (à implémenter avec MongoDB)
-	res.send([]);
+app.get('/tasks', async (req, res) => {
+	try {
+		const tasks = await Task.find();
+		res.json(tasks);
+	} catch (error) {
+		res.status(500).json({ error: 'Erreur lors de la récupération des tâches' });
+	}
 });
 
 // Créer une route pour ajouter une tâche
-app.post('/tasks', (req, res) => {
-	// Ajouter une tâche à la base de données (à implémenter)
-	res.send({ message: 'Tâche ajoutée' });
+app.post('/tasks', async (req, res) => {
+	try {
+		const { title } = req.body;
+		if (!title) {
+			return res.status(400).json({ error: 'Le titre de la tâche est requis' });
+		}
+		const newTask = new Task({ title, completed: false });
+		const savedTask = await newTask.save();
+		res.status(201).json(savedTask);
+	} catch (error) {
+		res.status(500).json({ error: 'Erreur lors de l\'ajout de la tâche' });
+	}
 });
 
 app.listen(PORT, () => {
